@@ -17,6 +17,8 @@ import static org.lwjgl.opengl.GL11.glOrtho;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 
 import org.lwjgl.LWJGLException;
 import org.lwjgl.Sys;
@@ -52,7 +54,7 @@ public class Main{
 	private Inventory inv;
 	private InputManager inputMan;
 	
-	public Main() {
+	public Main() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		initDisplay();
 		initObjects();		
 		initGL();
@@ -60,7 +62,7 @@ public class Main{
 		mainLoop();
 	}
 
-	private void input(){
+	private void input() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException{
 		Keyboard.enableRepeatEvents(true);
 		while (Keyboard.next()) {
 			// Movement block
@@ -100,6 +102,7 @@ public class Main{
 
 			if (inputMan.isKeyDown(Keyboard.KEY_ESCAPE)){
 				debugLog.endLogging();
+				map.mapLog.endLogging();
 				Display.destroy();
 				System.exit(0);
 			}
@@ -140,6 +143,14 @@ public class Main{
 				debugLog.writeToLog("Put \"" + Type.STONE_WALL.name() + "\" type block at point (" + player.getX() + ", " + player.getX() + ")");
 			}
 			
+			if(inputMan.keyArgs(new boolean[]{
+					inputMan.isKeyDown(Keyboard.KEY_F), 
+					Keyboard.getEventKeyState(), 
+					!consoleInput
+					})){
+				debugLog.writeToConsole(String.valueOf(debugLog.time(inv.getClass().getMethod("toggleOpen"), inv)));
+			}
+			
 			if(inputMan.keyArgs(new boolean[]{inputMan.isKeyDown(Keyboard.KEY_RETURN), Keyboard.getEventKeyState()})){
 				consoleInput = !consoleInput;
 				if(consoleInput == false){
@@ -166,7 +177,7 @@ public class Main{
 		inputMan = new InputManager(debugLog);
 	}
 	
-	public void mainLoop(){
+	public void mainLoop() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException{
 		while (!Display.isCloseRequested()){
 			// Render
 			glClear(GL_COLOR_BUFFER_BIT); // Clear the 2D environment
@@ -256,7 +267,7 @@ public class Main{
 		return delta;
 	}
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		new Main();
 	}
 }

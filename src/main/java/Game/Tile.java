@@ -26,6 +26,7 @@ public class Tile implements ITile{
 	protected Texture texture = null;
 	protected Type type;
 	protected Logger log;
+	private int fpsCount = 0;
 	
 	public Tile(double x, double y, double width, double height, Type type, Logger log){
 		this.x = x;
@@ -33,6 +34,8 @@ public class Tile implements ITile{
 		this.width = width;
 		this.height = height;
 		this.type = type;
+		this.doLog = true;
+		this.log = log;
 			
 		dx = 0;	
 		dy = 0;
@@ -42,12 +45,12 @@ public class Tile implements ITile{
 		}catch(FileNotFoundException e){
 			e.printStackTrace();
 			log.writeToLog("CRITICAL ERROR: ");
-			e.printStackTrace(log.p);
+			e.printStackTrace(this.log.p);
 			log.endLogging();
 		}catch(IOException e){
 			e.printStackTrace();
 			log.writeToLog("CRITICAL ERROR: ");
-			e.printStackTrace(log.p);
+			e.printStackTrace(this.log.p);
 			log.endLogging();
 		}
 	}
@@ -58,7 +61,6 @@ public class Tile implements ITile{
 		this.width = width;
 		this.height = height;
 		this.type = type;
-		this.doLog = true;
 			
 		dx = 0;	
 		dy = 0;
@@ -171,10 +173,13 @@ public class Tile implements ITile{
 		glLoadIdentity();
 		
 		now = System.nanoTime();
-		delta = now - then;		
-		
-		if(doLog)
-			log.writeToLog("Loading and drawing textures for tiles, " + delta + " ns, " + (delta / 1000000) + " ms.");
+		delta = now - then;	
+				
+		if(doLog && (fpsCount == 0 || fpsCount == 4 * Math.pow(Main.tileSize, 2) / Math.pow(Main.tileSize, 2))){
+			this.log.writeToLog(this.log.getCallerCallerClassName() + " Loading and drawing textures for tiles, " + delta + " ns, " + (delta/1000000)/60 + " ms.");
+			fpsCount = 1;
+		}
+		fpsCount++;
 	}
 	
 	/**
@@ -261,21 +266,25 @@ public class Tile implements ITile{
 			this.texture = TextureLoader.getTexture("PNG", new FileInputStream(new File(type.location)));
 		}catch(FileNotFoundException e){
 			e.printStackTrace();
-			log.writeToLog("CRITICAL ERROR: ");
-			e.printStackTrace(log.p);
-			log.endLogging();
+			if(doLog){
+				log.writeToLog("CRITICAL ERROR: ");
+				e.printStackTrace(log.p);
+				log.endLogging();
+			}
 		}catch(IOException e){
 			e.printStackTrace();
-			log.writeToLog("CRITICAL ERROR: ");
-			e.printStackTrace(log.p);
-			log.endLogging();
+			if(doLog){
+				log.writeToLog("CRITICAL ERROR: ");
+				e.printStackTrace(log.p);
+				log.endLogging();
+			}
 		}
 		
 		now = System.nanoTime();
 		delta = now - then;
-		
+		System.out.println(doLog);
 		if(doLog)
-			log.writeToLog("Changing tile type, " + delta + " ns, " + (delta / 1000000) + " ms.");
+			this.log.writeToLog("Changing tile types, " + delta + " ns, " + (delta / 1000000) + " ms.");
 	}
 	
 	/**

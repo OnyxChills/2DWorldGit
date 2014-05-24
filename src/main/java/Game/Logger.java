@@ -2,6 +2,9 @@ package Game;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.concurrent.TimeUnit;
 
 
 
@@ -17,7 +20,7 @@ public class Logger {
 		try{
 			p = new PrintWriter(new File(this.file + ".log"));
 		} catch (Exception e) {
-			
+			e.printStackTrace();
 		}
 	}
 	
@@ -69,6 +72,18 @@ public class Logger {
 			p.close();
 		} catch (Exception e) {
 		}
+	}
+	
+	public long time(Method m, Object obj, Object... args) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException{
+		long now, then, delta;
+		then = System.nanoTime();
+		
+		m.invoke(obj, args);
+		
+		now = System.nanoTime();
+		delta = now - then;
+				
+		return delta;
 	}
 	
 	public void writeHeader(){

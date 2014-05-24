@@ -17,14 +17,18 @@ public class Map {
 	
 	private Tile[][] tiles = new Tile[64][64];
 	private Logger log;
+	public Logger mapLog;
 	private boolean doLog = false;
+	private int fpsCount = 0;
 	
 	public Map(Logger log){	
 		this.log = log;
+		this.mapLog = new Logger(logFolder + mapLog.getCallerClassName().toString() + " - MapLog");
+		this.mapLog.startLogging();
 		doLog = true;
 		for(int x = 0; x < 64; x++){
 			for(int y = 0; y < 64; y++){
-				tiles[x][y] = new Tile(x * tileSize, y * tileSize, tileSize, tileSize, Type.BRICK_WALL, log);
+				tiles[x][y] = new Tile(x * tileSize, y * tileSize, tileSize, tileSize, Type.BRICK_WALL, mapLog);
 			}
 		}
 	}
@@ -32,7 +36,7 @@ public class Map {
 	public Map(){	
 		for(int x = 0; x < 64; x++){
 			for(int y = 0; y < 64; y++){
-				tiles[x][y] = new Tile(x * tileSize, y * tileSize, tileSize, tileSize, Type.BRICK_WALL, log);
+				tiles[x][y] = new Tile(x * tileSize, y * tileSize, tileSize, tileSize, Type.BRICK_WALL);
 			}
 		}
 	}
@@ -48,7 +52,7 @@ public class Map {
 			now = System.nanoTime();
 			delta = now - then;
 			if(doLog)
-				log.writeToLog("LOAD: Create Document and Element objects for loadmap, " + delta + " ns, " + (delta / 1000000) + " ms.");
+				mapLog.writeToLog("LOAD: Create Document and Element objects for loadmap, " + delta + " ns, " + (delta / 1000000) + " ms.");
 			// tile loop
 			then = System.nanoTime();
 
@@ -56,15 +60,23 @@ public class Map {
 				double x = Double.parseDouble(((Element) tile).getAttributeValue("x"));
 				double y = Double.parseDouble(((Element) tile).getAttributeValue("y"));
 				Type t = Type.valueOf(((Element) tile).getAttributeValue("type"));
-				if(currentMap.getAt((int)x, (int)y).getType() != t){
-					tiles[(int) x][(int) y] = new Tile(x * tileSize, y * tileSize, tileSize, tileSize, t, log);
+				
+				if(currentMap.getAt((int)x, (int)y).getType() != t && this.doLog){
+					tiles[(int) x][(int) y] = new Tile(x * tileSize, y * tileSize, tileSize, tileSize, t, this.mapLog);
+				}
+				if(currentMap.getAt((int)x, (int)y).getType() != t && !this.doLog){
+					tiles[(int) x][(int) y] = new Tile(x * tileSize, y * tileSize, tileSize, tileSize, t);
 				}
 			}
 			now = System.nanoTime();
-
 			delta = now - then;
-			if(doLog)
-				log.writeToLog("Tile loop, " + delta + " ns, " + (delta / 1000000) + " ms.");
+			
+			fpsCount++;
+			
+			if(doLog && fpsCount == 60){
+				mapLog.writeToLog("Tile loop, " + delta + " ns, " + (delta / 1000000) + " ms.");
+				fpsCount = 0;
+			}
 			
 		} catch (JDOMException e) {
 			e.printStackTrace();
@@ -139,11 +151,14 @@ public class Map {
 
 		delta = now - then;
 		if(doLog)
-			log.writeToLog("Tile loop, " + delta + " ns, " + (delta / 1000000) + " ms.");
+			this.log.writeToLog("Tile loop, " + delta + " ns, " + (delta / 1000000) + " ms.");
 	}
 	
 	public void setAt(int x, int y, Type b){
-		tiles[x][y] = new Tile(x * tileSize, y * tileSize, tileSize, tileSize, b, log);
+		if(this.doLog)
+			tiles[x][y] = new Tile(x * tileSize, y * tileSize, tileSize, tileSize, b, this.mapLog);
+		else
+			tiles[x][y] = new Tile(x * tileSize, y * tileSize, tileSize, tileSize, b);
 	}
 	
 	public Tile getAt(int x, int y){
